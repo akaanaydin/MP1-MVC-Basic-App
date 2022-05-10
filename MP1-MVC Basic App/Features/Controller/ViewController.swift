@@ -7,7 +7,9 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UISearchResultsUpdating {
+    
+    
     
     var service = NetworkService()
     var results = [Result]()
@@ -15,6 +17,7 @@ class ViewController: UIViewController {
     var chosenMovieOverview = ""
     var chosenMovieImage = ""
     var chosenMovieReleaseDate = ""
+    var searchController = UISearchController()
     
     
     @IBOutlet weak var tableView: UITableView!
@@ -26,16 +29,34 @@ class ViewController: UIViewController {
         let nib = UINib(nibName: String(describing: MainTableViewCell.self), bundle: nil)
         tableView.register(nib, forCellReuseIdentifier: String(describing: MainTableViewCell.self))
         tableView.rowHeight = 200
-        service.fetchAllDatas {
-            data in
-            self.results = data
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-            }
-        }
+//        service.fetchAllDatas {
+//            data in
+//            self.results = data
+//            DispatchQueue.main.async {
+//                self.tableView.reloadData()
+//            }
+//        }
         tableView.dataSource = self
         tableView.delegate = self
+        navigationItem.searchController = searchController
+        searchController.searchResultsUpdater = self
     }
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let text = searchController.searchBar.text else {
+            return
+        }
+        var textSearch = text.replacingOccurrences(of: " ", with: "%20")
+        service.fetchAllDatas(text: textSearch, res: {
+                        data in
+                        self.results = data
+                        DispatchQueue.main.async {
+                            self.tableView.reloadData()
+                        }
+                    })
+    }
+    
+
 }
 
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
